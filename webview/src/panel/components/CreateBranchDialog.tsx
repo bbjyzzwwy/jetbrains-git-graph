@@ -35,7 +35,7 @@ function Checkbox({
         height: 16,
         borderRadius: 3,
         border: checked ? "none" : "1.5px solid var(--description-fg, #999)",
-        background: checked ? "#3574f0" : "transparent",
+        background: checked ? "var(--checkbox-bg)" : "transparent",
         cursor: "pointer",
         flexShrink: 0,
         transition: "background 0.1s, border 0.1s",
@@ -45,7 +45,7 @@ function Checkbox({
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path
             d="M2.5 6L5 8.5L9.5 3.5"
-            stroke="#fff"
+            stroke="var(--vscode-checkbox-foreground, var(--button-fg))"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"

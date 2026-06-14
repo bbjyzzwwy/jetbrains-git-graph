@@ -80,14 +80,16 @@ function RebaseBanner() {
         alignItems: "center",
         gap: 8,
         padding: "6px 12px",
-        background: "#e8f5e9",
-        borderBottom: "1px solid #c8e6c9",
+        background:
+          "var(--vscode-inputValidation-infoBackground, var(--vscode-editorWidget-background))",
+        borderBottom:
+          "1px solid var(--vscode-inputValidation-infoBorder, var(--border))",
         fontSize: 12,
         flexShrink: 0,
       }}
     >
       <span style={{ fontSize: 14 }}>⚠️</span>
-      <span style={{ fontWeight: 600, flex: 1, color: "#333" }}>
+      <span style={{ fontWeight: 600, flex: 1, color: "var(--app-fg)" }}>
         {label}
         {progress}
       </span>
@@ -236,14 +238,18 @@ function CherryPickBanner() {
         alignItems: "center",
         gap: 8,
         padding: "6px 12px",
-        background: "#fff3e0",
-        borderBottom: "1px solid #ffe0b2",
+        background:
+          "var(--vscode-inputValidation-warningBackground, var(--vscode-editorWidget-background))",
+        borderBottom:
+          "1px solid var(--vscode-inputValidation-warningBorder, var(--border))",
         fontSize: 12,
         flexShrink: 0,
       }}
     >
       <span style={{ fontSize: 14 }}>🍒</span>
-      <span style={{ fontWeight: 600, flex: 1, color: "#333" }}>{label}</span>
+      <span style={{ fontWeight: 600, flex: 1, color: "var(--app-fg)" }}>
+        {label}
+      </span>
       <Tooltip text="Continue Cherry-pick (git cherry-pick --continue)">
         <div
           role="button"
@@ -426,14 +432,18 @@ function MergeBanner() {
         alignItems: "center",
         gap: 8,
         padding: "6px 12px",
-        background: "#e8f5e9",
-        borderBottom: "1px solid #c8e6c9",
+        background:
+          "var(--vscode-inputValidation-infoBackground, var(--vscode-editorWidget-background))",
+        borderBottom:
+          "1px solid var(--vscode-inputValidation-infoBorder, var(--border))",
         fontSize: 12,
         flexShrink: 0,
       }}
     >
       <span style={{ fontSize: 14 }}>⚠️</span>
-      <span style={{ fontWeight: 600, flex: 1, color: "#333" }}>{label}</span>
+      <span style={{ fontWeight: 600, flex: 1, color: "var(--app-fg)" }}>
+        {label}
+      </span>
       <Tooltip text="Resolve Conflicts" position="top">
         <div
           role="button"

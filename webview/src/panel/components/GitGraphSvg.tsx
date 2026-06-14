@@ -11,14 +11,14 @@ const ROW_HEIGHT = 28;
 const GRAPH_PADDING = 6;
 const VISIBLE_OVERSCAN = 8;
 const LANE_COLORS = [
-  "#3a8ee6", // blue – primary branch (IDEA blue)
-  "#c75450", // red – merge/feature branch
-  "#59a869", // green – secondary branch
-  "#e5c07b", // golden yellow
-  "#b07cd8", // purple/violet
-  "#2aa198", // teal/cyan
-  "#d19a66", // warm orange
-  "#56b6c2", // light teal
+  "var(--graph-lane-blue)",
+  "var(--graph-lane-red)",
+  "var(--graph-lane-green)",
+  "var(--graph-lane-yellow)",
+  "var(--graph-lane-purple)",
+  "var(--graph-lane-cyan)",
+  "var(--graph-lane-orange)",
+  "var(--graph-lane-teal)",
 ];
 
 function laneColor(colorIdx: number): string {
@@ -46,13 +46,13 @@ function linePath(
   if (isStub) {
     return `M ${fromX} ${fromY} L ${toX} ${toY}`;
   }
-  // IDEA-style: vertical → diagonal (one row height) → vertical
-  // The diagonal segment spans one ROW_HEIGHT vertically while shifting columns.
-  const diagonalH = ROW_HEIGHT; // vertical extent of the diagonal segment
+  // IDEA-style: vertical → diagonal → vertical.
+  // Use up to half the total span for the diagonal so convergence is visible.
   const totalDeltaY = toY - fromY;
+  const diagonalH = Math.min(totalDeltaY * 0.5, ROW_HEIGHT * 3);
 
-  if (totalDeltaY <= diagonalH) {
-    // Not enough vertical space for full pattern – just draw a straight diagonal
+  if (totalDeltaY <= ROW_HEIGHT * 0.5) {
+    // Very short span – just draw a straight diagonal
     return `M ${fromX} ${fromY} L ${toX} ${toY}`;
   }
 
@@ -64,6 +64,36 @@ function linePath(
   // Merging in (leftward): diagonal ends at the bottom (near target)
   const diagStartY = toY - diagonalH;
   return `M ${fromX} ${fromY} L ${fromX} ${diagStartY} L ${toX} ${toY}`;
+}
+
+function routedLinePath(
+  points: Array<{ x: number; y: number }>,
+  isStub?: boolean,
+): string {
+  if (points.length < 2) {
+    return "";
+  }
+  if (isStub || points.length === 2) {
+    return linePath(points[0].x, points[0].y, points[1].x, points[1].y, isStub);
+  }
+
+  const compact: Array<{ x: number; y: number }> = [];
+  for (const point of points) {
+    const prev = compact[compact.length - 1];
+    if (!prev || prev.x !== point.x || prev.y !== point.y) {
+      compact.push(point);
+    }
+  }
+
+  return compact
+    .map((point, index) =>
+      index === 0 ? `M ${point.x} ${point.y}` : `L ${point.x} ${point.y}`,
+    )
+    .join(" ");
+}
+
+function routeKey(fromHash: string, targetHash: string): string {
+  return `${fromHash}\x00${targetHash}`;
 }
 
 /**
@@ -233,12 +263,6 @@ export function GitGraphSvg({
     null,
   );
 
-  const maxColumn = Math.max(
-    0,
-    ...Object.values(graphLayout).map((l) => l.column),
-  );
-  const svgWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
-
   // Sequence detection on full commits list
   const { hashToSequenceId, sequencesById } = useMemo(
     () => computeCollapsibleSequences(commits, graphLayout),
@@ -255,6 +279,87 @@ export function GitGraphSvg({
     return { rowIndexByHash: indexMap, visibleSet: set };
   }, [visibleCommits]);
 
+  const incomingFanColumns = useMemo(() => {
+    const result: Record<string, number> = {};
+    const incoming: Record<
+      string,
+      Array<{
+        sourceHash: string;
+        sourceRow: number;
+        sourceColumn: number;
+        attachColumn: number;
+      }>
+    > = {};
+
+    for (let i = 0; i < visibleCommits.length; i++) {
+      const commit = visibleCommits[i];
+      const lane = graphLayout[commit.hash];
+      if (!lane) continue;
+
+      for (const line of lane.lines) {
+        const targetRow = rowIndexByHash[line.toCommit];
+        if (targetRow == null || line.hiddenParent) continue;
+
+        const lastRouteColumn =
+          line.route && line.route.length > 0
+            ? line.route[line.route.length - 1].column
+            : line.fromColumn;
+        const attachColumn = Math.max(
+          lastRouteColumn,
+          line.fromColumn,
+          line.toColumn,
+        );
+
+        const list = incoming[line.toCommit] ?? [];
+        list.push({
+          sourceHash: commit.hash,
+          sourceRow: i,
+          sourceColumn: lane.column,
+          attachColumn,
+        });
+        incoming[line.toCommit] = list;
+      }
+    }
+
+    for (const [targetHash, edges] of Object.entries(incoming)) {
+      const targetColumn = graphLayout[targetHash]?.column ?? 0;
+      edges.sort(
+        (a, b) =>
+          a.attachColumn - b.attachColumn ||
+          a.sourceColumn - b.sourceColumn ||
+          b.sourceRow - a.sourceRow,
+      );
+
+      for (let i = 0; i < edges.length; i++) {
+        const edge = edges[i];
+        const direction = edge.attachColumn < targetColumn ? -1 : 1;
+        const fanColumn =
+          i === 0
+            ? targetColumn
+            : direction > 0
+              ? Math.max(edge.attachColumn, targetColumn + i)
+              : Math.min(edge.attachColumn, targetColumn - i);
+        result[routeKey(edge.sourceHash, targetHash)] = fanColumn;
+      }
+    }
+
+    return result;
+  }, [visibleCommits, graphLayout, rowIndexByHash]);
+
+  const maxColumn = Math.max(
+    0,
+    ...Object.values(graphLayout).flatMap((lane) => [
+      lane.column,
+      ...lane.lines.flatMap((line) => [
+        line.fromColumn,
+        line.toColumn,
+        ...(line.route?.map((point) => point.column) ?? []),
+      ]),
+    ]),
+    ...Object.values(incomingFanColumns),
+  );
+  const svgWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
+
   const { allLines, allNodes } = useMemo(() => {
     const lines: Array<{
       key: string;
@@ -270,6 +375,7 @@ export function GitGraphSvg({
       fromHash?: string;
       targetHash?: string;
       sequenceId?: string;
+      points: Array<{ x: number; y: number }>;
     }> = [];
     const nodes: Array<{
       key: string;
@@ -303,9 +409,17 @@ export function GitGraphSvg({
       });
 
       for (const line of lane.lines) {
+        const lineFromX = colX(line.fromColumn);
+        const lineColor =
+          line.phantom && line.phantomColor !== undefined
+            ? laneColor(line.phantomColor)
+            : color;
+
         let targetHash = line.toCommit;
         let targetIdx = rowIndexByHash[targetHash];
-        const isStraight = lane.column === line.toColumn;
+        const isStraight = line.phantom
+          ? line.fromColumn === line.toColumn
+          : lane.column === line.toColumn;
         let isStub = false;
         let wasResolved = false;
 
@@ -351,12 +465,12 @@ export function GitGraphSvg({
         if (isStub) {
           toY = fromY + ROW_HEIGHT;
           if (!isStraight) {
-            const dx = toX - fromX;
+            const dx = toX - lineFromX;
             toX =
-              fromX +
+              lineFromX +
               Math.sign(dx) * Math.min(Math.abs(dx), COLUMN_WIDTH * 0.5);
           } else {
-            toX = fromX;
+            toX = lineFromX;
           }
           isDashed = false;
         } else {
@@ -365,6 +479,32 @@ export function GitGraphSvg({
             isDashed = true;
           }
         }
+
+        const points = [{ x: lineFromX, y: fromY }];
+        if (!isStub && !wasResolved && line.route) {
+          for (const point of line.route) {
+            const routeIdx = rowIndexByHash[point.commit];
+            if (routeIdx == null) {
+              continue;
+            }
+            const routeY = rowY(routeIdx);
+            if (routeY <= fromY || routeY >= toY) {
+              continue;
+            }
+            points.push({ x: colX(point.column), y: routeY });
+          }
+        }
+        if (!isStub && !wasResolved && targetIdx != null) {
+          const fanColumn =
+            incomingFanColumns[routeKey(commit.hash, targetHash)];
+          if (fanColumn != null && fanColumn !== line.toColumn) {
+            points.push({
+              x: colX(fanColumn),
+              y: toY - ROW_HEIGHT * 0.55,
+            });
+          }
+        }
+        points.push({ x: toX, y: toY });
 
         // Determine sequenceId for this line
         let lineSeqId: string | undefined;
@@ -384,19 +524,20 @@ export function GitGraphSvg({
           }
         }
         lines.push({
-          key: `${commit.hash}-${targetHash}-${lane.column}-${line.toColumn}`,
-          fromX,
+          key: `${commit.hash}-${targetHash}-${line.phantom ? "ph" : lane.column}-${line.toColumn}`,
+          fromX: lineFromX,
           fromY,
           toX,
           toY,
           minY: Math.min(fromY, toY),
           maxY: Math.max(fromY, toY),
-          color,
+          color: lineColor,
           isStub,
           isDashed,
           fromHash: commit.hash,
           targetHash: line.toCommit,
           sequenceId: lineSeqId,
+          points,
         });
       }
     }
@@ -407,6 +548,7 @@ export function GitGraphSvg({
     graphLayout,
     rowIndexByHash,
     visibleSet,
+    incomingFanColumns,
     hashToSequenceId,
     sequencesById,
   ]);
@@ -420,7 +562,7 @@ export function GitGraphSvg({
       .filter((line) => line.maxY >= viewportTop && line.minY <= viewportBottom)
       .map((line) => ({
         key: line.key,
-        d: linePath(line.fromX, line.fromY, line.toX, line.toY, line.isStub),
+        d: routedLinePath(line.points, line.isStub),
         color: line.color,
         isStub: line.isStub,
         isDashed: line.isDashed,

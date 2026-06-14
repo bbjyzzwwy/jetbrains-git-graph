@@ -33,6 +33,17 @@ export interface LaneLine {
   type: "straight" | "merge-left" | "merge-right" | "fork-left" | "fork-right";
   /** Parent is hidden by current filter window; keep relation for later pages. */
   hiddenParent?: boolean;
+  /** Per-row edge columns, matching JetBrains' row print positions. */
+  route?: LaneRoutePoint[];
+  /** Phantom through-line: draw from line.fromColumn instead of lane.column. */
+  phantom?: boolean;
+  /** Color index override for phantom lines. */
+  phantomColor?: number;
+}
+
+export interface LaneRoutePoint {
+  commit: string;
+  column: number;
 }
 
 export interface LaneSnapshot {

@@ -13,7 +13,7 @@
 .commit-app input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #3574f0;
+  accent-color: var(--checkbox-bg);
   cursor: pointer;
 }
 
@@ -107,12 +107,12 @@
 }
 
 .commit-toolbar-btn:hover:not(:disabled) {
-  background: #ededed;
+  background: var(--vscode-toolbar-hoverBackground, var(--hover-bg));
   opacity: 1;
 }
 
 .commit-toolbar-btn:active {
-  background: #d4d4d4;
+  background: var(--vscode-toolbar-activeBackground, var(--hover-bg));
 }
 
 .commit-toolbar-btn:disabled {
@@ -210,7 +210,7 @@
   margin-right: 6px;
   width: 16px;
   height: 16px;
-  accent-color: #3574f0;
+  accent-color: var(--checkbox-bg);
   cursor: pointer;
 }
 
@@ -245,7 +245,7 @@
   margin-right: 4px;
   width: 16px;
   height: 16px;
-  accent-color: #3574f0;
+  accent-color: var(--checkbox-bg);
   cursor: pointer;
 }
 
@@ -367,7 +367,7 @@
   min-height: 60px;
   max-height: 150px;
   resize: vertical;
-  border: 1px solid #c4c4c4;
+  border: 1px solid var(--input-border);
   background: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
   font-family: var(--vscode-font-family);
@@ -379,7 +379,7 @@
 }
 
 .commit-message-textarea:focus {
-  border-color: #3574f0;
+  border-color: var(--focus-border);
 }
 
 .commit-message-textarea::placeholder {
@@ -656,7 +656,7 @@ button.commit-dropdown-item:hover:not(:disabled) {
   position: relative;
   height: 3px;
   overflow: hidden;
-  background: rgba(0, 122, 204, 0.15);
+  background: var(--progress-bg);
   flex-shrink: 0;
 }
 
@@ -666,8 +666,8 @@ button.commit-dropdown-item:hover:not(:disabled) {
   background: linear-gradient(
     90deg,
     transparent,
-    #007acc 30%,
-    #3794ff 70%,
+    var(--progress-fg) 30%,
+    var(--link-active-fg) 70%,
     transparent
   );
   animation: commit-progress-slide 1s infinite linear;
@@ -693,7 +693,7 @@ button.commit-dropdown-item:hover:not(:disabled) {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  color: #fff;
+  color: var(--vscode-button-foreground, var(--button-fg));
   user-select: none;
 }
 
@@ -706,17 +706,17 @@ button.commit-dropdown-item:hover:not(:disabled) {
 }
 
 .rebase-action-btn.rebase-continue {
-  background: #4a8c5c;
+  background: var(--ref-branch-fg);
 }
 
 .rebase-action-btn.rebase-abort {
-  background: #c75b5b;
+  background: var(--error-fg);
 }
 
 /* ─── Merge Conflicts Resolve Link ─────────────────────────────── */
 .commit-group-resolve-link {
   margin-left: 8px;
-  color: var(--vscode-textLink-foreground, #3794ff);
+  color: var(--link-fg);
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
@@ -724,6 +724,6 @@ button.commit-dropdown-item:hover:not(:disabled) {
 }
 
 .commit-group-resolve-link:hover {
-  color: var(--vscode-textLink-activeForeground, #3794ff);
+  color: var(--link-active-fg);
   text-decoration: none;
 }

@@ -12,7 +12,7 @@ function Linkify({ text }: { text: string }) {
           <a
             key={`link-${i}-${part.slice(0, 20)}`}
             href={part}
-            style={{ color: "#3574f0", textDecoration: "none" }}
+            style={{ color: "var(--link-fg)", textDecoration: "none" }}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -37,12 +37,11 @@ function formatDateTime(dateStr: string): string {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 }
 
-/** Icon colors matching IDEA */
 const iconColors: Record<string, string> = {
-  branch: "#59a869",
-  "remote-branch": "#9b7dd4",
-  tag: "#c4a000",
-  HEAD: "#c4a000",
+  branch: "var(--ref-branch-fg)",
+  "remote-branch": "var(--ref-remote-branch-fg)",
+  tag: "var(--ref-tag-fg)",
+  HEAD: "var(--ref-tag-fg)",
 };
 
 /**
@@ -101,7 +100,7 @@ export function CommitInfo({ commit }: { commit: Commit }) {
           <>
             <a
               href={`mailto:${commit.authorEmail}`}
-              style={{ color: "#3574f0", textDecoration: "none" }}
+              style={{ color: "var(--link-fg)", textDecoration: "none" }}
             >
               &lt;{commit.authorEmail}&gt;
             </a>{" "}

@@ -32,6 +32,82 @@ export interface IdeaShelfEntry {
 
 type TabType = "commit" | "shelf" | "stash";
 
+interface CommitViewPrefs {
+  activeTab: TabType;
+  expandedGroups: string[];
+  groupByDirectory: boolean;
+  showUnversioned: boolean;
+}
+
+const COMMIT_VIEW_PREFS_KEY = "jetgit.commitViewPrefs";
+const DEFAULT_COMMIT_VIEW_PREFS: CommitViewPrefs = {
+  activeTab: "commit",
+  expandedGroups: ["changes", "unversioned", "staged"],
+  groupByDirectory: true,
+  showUnversioned: true,
+};
+
+function loadCommitViewPrefs(): CommitViewPrefs {
+  try {
+    const raw = localStorage.getItem(COMMIT_VIEW_PREFS_KEY);
+    if (!raw) return DEFAULT_COMMIT_VIEW_PREFS;
+    const parsed = JSON.parse(raw) as Partial<CommitViewPrefs>;
+    return {
+      activeTab:
+        parsed.activeTab === "commit" ||
+        parsed.activeTab === "shelf" ||
+        parsed.activeTab === "stash"
+          ? parsed.activeTab
+          : DEFAULT_COMMIT_VIEW_PREFS.activeTab,
+      expandedGroups: Array.isArray(parsed.expandedGroups)
+        ? parsed.expandedGroups.filter((group) => typeof group === "string")
+        : DEFAULT_COMMIT_VIEW_PREFS.expandedGroups,
+      groupByDirectory:
+        typeof parsed.groupByDirectory === "boolean"
+          ? parsed.groupByDirectory
+          : DEFAULT_COMMIT_VIEW_PREFS.groupByDirectory,
+      showUnversioned:
+        typeof parsed.showUnversioned === "boolean"
+          ? parsed.showUnversioned
+          : DEFAULT_COMMIT_VIEW_PREFS.showUnversioned,
+    };
+  } catch {
+    return DEFAULT_COMMIT_VIEW_PREFS;
+  }
+}
+
+function saveCommitViewPrefs(prefs: CommitViewPrefs): void {
+  try {
+    localStorage.setItem(COMMIT_VIEW_PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // ignore
+  }
+}
+
+function persistCommitViewPrefs(
+  patch: Partial<CommitViewPrefs>,
+  state: Pick<
+    CommitStore,
+    "activeTab" | "expandedGroups" | "groupByDirectory" | "showUnversioned"
+  >,
+): void {
+  saveCommitViewPrefs({
+    activeTab: state.activeTab,
+    expandedGroups: Array.from(state.expandedGroups),
+    groupByDirectory: state.groupByDirectory,
+    showUnversioned: state.showUnversioned,
+    ...patch,
+  });
+}
+
+function defaultSelectedFileKeys(files: WorkingTreeFile[]): Set<string> {
+  return new Set(
+    files
+      .filter((file) => !file.staged)
+      .map((file) => `${file.path}:${file.staged}`),
+  );
+}
+
 interface CommitStore {
   // File changes
   changes: WorkingTreeFile[];
@@ -93,6 +169,8 @@ interface CommitStore {
   refresh: () => Promise<void>;
 }
 
+const initialPrefs = loadCommitViewPrefs();
+
 export const useCommitStore = create<CommitStore>((set, get) => ({
   changes: [],
   selectedFiles: new Set<string>(),
@@ -101,11 +179,11 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
   amend: false,
   shelves: [],
   ideaShelves: [],
-  activeTab: "commit",
+  activeTab: initialPrefs.activeTab,
   loading: false,
-  expandedGroups: new Set(["changes", "unversioned", "staged"]),
-  groupByDirectory: true,
-  showUnversioned: true,
+  expandedGroups: new Set(initialPrefs.expandedGroups),
+  groupByDirectory: initialPrefs.groupByDirectory,
+  showUnversioned: initialPrefs.showUnversioned,
   collapsedDirs: new Set<string>(),
 
   async fetchChanges() {
@@ -119,8 +197,10 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
         const newPaths = new Set(result.map((f) => `${f.path}:${f.staged}`));
         const { selectedFiles, changes } = get();
         if (changes.length === 0) {
-          // First load — no auto-selection (user manually selects files)
-          set({ changes: result, selectedFiles: new Set<string>() });
+          set({
+            changes: result,
+            selectedFiles: defaultSelectedFileKeys(result),
+          });
         } else {
           // Refresh — preserve user's selection state (only keep existing selections)
           const preserved = new Set<string>();
@@ -417,6 +497,7 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
 
   setActiveTab(tab: TabType) {
     set({ activeTab: tab });
+    persistCommitViewPrefs({ activeTab: tab }, get());
     if (tab === "stash") {
       get().fetchShelves();
     } else if (tab === "shelf") {
@@ -433,6 +514,7 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
       next.add(group);
     }
     set({ expandedGroups: next });
+    persistCommitViewPrefs({ expandedGroups: Array.from(next) }, get());
   },
 
   toggleDir(dirPath: string) {
@@ -462,10 +544,13 @@ export const useCommitStore = create<CommitStore>((set, get) => ({
     } else {
       set({ groupByDirectory: false, collapsedDirs: new Set() });
     }
+    persistCommitViewPrefs({ groupByDirectory: next }, get());
   },
 
   toggleShowUnversioned() {
-    set({ showUnversioned: !get().showUnversioned });
+    const next = !get().showUnversioned;
+    set({ showUnversioned: next });
+    persistCommitViewPrefs({ showUnversioned: next }, get());
   },
 
   async refresh() {

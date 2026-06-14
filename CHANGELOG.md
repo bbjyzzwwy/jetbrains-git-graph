@@ -1,5 +1,20 @@
 # Changelog / 更新日志
 
+## [0.4.15] - 2026-06-14
+
+### Added / 新增
+- **JetBrains-style branch lane routing** — branch tips newer than the main branch can fold back to the left lane while preserving readable diagonal transitions / 分支最新提交晚于主分支时可按 JetBrains 风格折回左侧主列，并保持清晰的斜线过渡
+- **Persistent commit panel view options** — commit panel remembers active tab, expanded groups, "Group By Directory", and "Show Unversioned Files" across VS Code reloads / Commit 面板会记住当前 tab、展开分组、按目录分组、显示未跟踪文件等视图设置
+
+### Changed / 变更
+- **Stable graph colors across filters** — branch line colors now stay consistent whether viewing all commits or filtering a single branch / 分支线颜色在显示全部提交和筛选单个分支时保持一致
+- **Theme-aware graph and UI colors** — graph lanes, ref icons, buttons, focus borders, progress bars, checkboxes, and scrollbars now use VS Code theme variables where possible / 分支线、ref 图标、按钮、焦点边框、进度条、复选框和滚动条尽量使用 VS Code 主题变量
+- **Default file selection in Commit panel** — Changes and Unversioned Files are selected by default on initial load / Commit 面板初次加载时默认勾选 Changes 和 Unversioned Files 中的文件
+
+### Fixed / 修复
+- **Branch line overlap and crossing** — routed graph lines avoid the visible crossing/stacking that happened when several branches came from the same commit / 修复多个分支从同一 commit 引出时分支线交叉、重叠的问题
+- **Filtered branch color regression** — branch colors no longer reset to the first palette color when only one branch is displayed / 修复筛选单个分支后颜色重置为首个调色板颜色的问题
+
 ## [0.4.14] - 2026-06-09
 
 ### Added / 新增
@@ -24,17 +39,26 @@
 
 ## [0.4.11] - 2026-06-06
 
+### Added / 新增
+- **Compare with Local** — right-click a commit → "Compare with Local" to view file differences between the selected commit and local working tree in a dedicated Changes sidebar panel (activity bar container) / 右键 commit → "Compare with Local"，在左侧栏独立 Changes 容器中显示本地与选中 commit 的文件差异；点击文件打开 VSCode diff 编辑器
+
 ### Changed / 变更
 - **IDEA-style graph colors** — lane colors updated to match IntelliJ IDEA's softer, professional palette (blue, red, green, golden, purple, teal, orange, light teal) / Git graph 配色更新为 IDEA 风格的柔和专业色系
 - **IDEA-style angular lines** — graph lines changed from Bézier curves to IDEA-style diagonal transitions (vertical → diagonal → vertical) / 分支线从贝塞尔曲线改为 IDEA 风格的斜线过渡
 - **Stub lines with arrows** — branch tips whose parents are beyond the loaded range now show a solid line with a downward arrow (matching IDEA) instead of dashed stubs / 超出加载范围的分支末端改为实线+向下箭头
 - **Branch ahead/behind indicators** — shows green ↗ for ahead and teal ↙ for behind on branch names in the tree (IDEA style) / 分支树显示绿色 ↗ ahead 和青色 ↙ behind 标记
 - **Ref icon colors** — remote-branch and tag icon colors updated to match the new graph palette / Ref 图标颜色与 graph 配色统一
+- **HEAD icon color** — HEAD badge now uses yellow to match PyCharm/IDEA style / HEAD 图标颜色改为黄色，与 IDEA 风格一致
 
 ### Fixed / 修复
 - **Graph hidden by header** — git graph SVG no longer renders above the column header when scrolling; header properly clips the graph / 滚动时 graph 不再穿过表头
 - **Node-text overlap** — improved per-row max column tracking to prevent graph nodes from overlapping commit message text / 改进每行最大列计算，防止节点与文字重叠
 - **Date-order sorting** — git log now uses `--date-order` for commit ordering consistent with IDEA / git log 使用 `--date-order` 排序，与 IDEA 一致
+- **Ref label classification** — local branches with slashes (e.g. fix/xxx) are no longer misidentified as remote branches; each ref is now rendered individually by its original type (HEAD, local, remote, tag) / 带斜杠的本地分支（如 fix/xxx）不再被误判为远程分支；按原始 ref 类型逐个渲染
+- **Ref icons on same commit** — local and remote branches on the same commit now render as separate icons instead of being merged into one / 同一 commit 上的本地和远程分支不再合并为单个图标
+- **Long commit message truncation** — commit subject now truncates first so branch/ref icons remain visible; ref area reserves minimum icon width and only hides text (not icons) when space is insufficient / 长 commit message 优先省略，保留 ref 图标可见性；空间不足时仅省略 ref 文本，保留小图标
+- **Tooltip flex shrink** — Tooltip wrapper now supports a `style` prop so it correctly shrinks inside flex containers / Tooltip 支持传入 wrapper style，在 flex 布局中可正确收缩
+- **Diff open no longer hides sidebar** — opening a diff from Changed Files no longer triggers `workbench.action.maximizeEditorHideSidebar`; diff opens in the current editor group with normal preview behavior / 从 Changed Files 打开 diff 不再隐藏 VS Code 侧栏或改变 workbench 布局
 
 ## [0.4.10] - 2026-06-04
 
@@ -71,6 +95,8 @@
 - **New Branch input pre-filled** — "New Branch from..." now pre-fills the input with the source branch name (fully selected) / "New Branch from..." 现在预填源分支名称并全选
 
 ### Fixed / 修复
+- **File status colors in dark theme** — `STATUS_COLORS` in FileTree and `getStatusColor()` in FileItem now use `--vscode-gitDecoration-*-Foreground` CSS variables instead of hardcoded colors, automatically adapting to light and dark themes / 文件状态颜色改用 VSCode CSS 变量，自动适配深浅主题
+- **Commit panel button styles in dark theme** — tab, primary, and secondary button hover/active states now use VSCode theme variables instead of hardcoded `#ededed` / `#dfe7f5`; buttons gain a `border` for contrast against similar backgrounds / Commit 面板按钮样式改用 VSCode 主题变量，替代硬编码颜色，适配深色主题；按钮添加 border 保证轮廓清晰
 - **Diff icon** — replaced with official JetBrains `expui/vcs/diff.svg` icon (two offset arrows → ←) across all context menus and toolbars / 所有右键菜单和工具栏的 diff 图标替换为 JetBrains 官方 `expui/vcs/diff.svg`
 - **Compare with Current icon** — now uses the official diff icon instead of the external-link style / "Compare with Current" 按钮改用官方 diff 图标
 - **Group By Directory icon** — replaced with JetBrains `groupByPackage` icon (folder inside brackets) / "Group By Directory" 图标改为 JetBrains `groupByPackage` 风格（方括号内文件夹）

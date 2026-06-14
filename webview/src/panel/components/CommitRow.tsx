@@ -8,12 +8,11 @@ const COLUMN_WIDTH = 10;
 const GRAPH_PADDING = 6;
 const NODE_TEXT_GAP = 14;
 
-/** Tag icon colors matching IDEA */
 const REF_ICON_COLORS: Record<string, string> = {
-  branch: "#59a869",
-  "remote-branch": "#b07cd8",
-  tag: "#e5c07b",
-  HEAD: "#e5c07b",
+  branch: "var(--ref-branch-fg)",
+  "remote-branch": "var(--ref-remote-branch-fg)",
+  tag: "var(--ref-tag-fg)",
+  HEAD: "var(--ref-tag-fg)",
 };
 
 function formatDateTime(dateStr: string): string {

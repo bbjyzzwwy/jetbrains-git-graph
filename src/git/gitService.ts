@@ -127,8 +127,24 @@ export class GitService {
     prevSnapshot?: LaneSnapshot,
   ): Promise<GraphLayoutResult> {
     const commits = await this.getLog(options);
+    const hasDisplayFilter = !!(
+      options.branch ||
+      options.search ||
+      options.author ||
+      options.file ||
+      options.since ||
+      options.until
+    );
+    const colorSourceCommits = hasDisplayFilter
+      ? await this.getLog({ maxCount: options.maxCount })
+      : commits;
     const breakHiddenParents = !!options.search;
-    return computeGraphLayout(commits, prevSnapshot, breakHiddenParents);
+    return computeGraphLayout(
+      commits,
+      prevSnapshot,
+      breakHiddenParents,
+      colorSourceCommits,
+    );
   }
 
   async getBranches(): Promise<BranchInfo[]> {

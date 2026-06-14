@@ -74,7 +74,7 @@
 .rollback-file-list input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #3574f0;
+  accent-color: var(--checkbox-bg);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -107,7 +107,7 @@
 .rollback-delete-option input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #3574f0;
+  accent-color: var(--checkbox-bg);
   cursor: pointer;
 }
 

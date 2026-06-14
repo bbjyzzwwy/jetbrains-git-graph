@@ -497,7 +497,7 @@ export function PushApp() {
             height: 3,
             zIndex: 10000,
             overflow: "hidden",
-            background: "rgba(0, 122, 204, 0.15)",
+            background: "var(--progress-bg)",
           }}
         >
           <div
@@ -505,7 +505,7 @@ export function PushApp() {
               height: "100%",
               width: "40%",
               background:
-                "linear-gradient(90deg, transparent, #007acc 30%, #3794ff 70%, transparent)",
+                "linear-gradient(90deg, transparent, var(--progress-fg) 30%, var(--link-active-fg) 70%, transparent)",
               animation: "progress-slide 1s infinite linear",
             }}
           />

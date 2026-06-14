@@ -22,6 +22,37 @@
   --input-border: var(--vscode-input-border, #3c3c3c);
   --description-fg: var(--vscode-descriptionForeground, #999);
   --error-fg: var(--vscode-errorForeground, #f48771);
+  --focus-border: var(--vscode-focusBorder, #007fd4);
+  --link-fg: var(--vscode-textLink-foreground, #3794ff);
+  --link-active-fg: var(--vscode-textLink-activeForeground, #3794ff);
+  --icon-fg: var(--vscode-icon-foreground, var(--description-fg));
+  --checkbox-bg: var(--vscode-checkbox-background, var(--focus-border));
+  --progress-bg: color-mix(
+    in srgb,
+    var(--vscode-progressBar-background, var(--focus-border)) 24%,
+    transparent
+  );
+  --progress-fg: var(--vscode-progressBar-background, var(--focus-border));
+  --graph-lane-blue: var(--vscode-charts-blue, #3a8ee6);
+  --graph-lane-red: var(--vscode-charts-red, #c75450);
+  --graph-lane-green: var(--vscode-charts-green, #59a869);
+  --graph-lane-yellow: var(--vscode-charts-yellow, #e5c07b);
+  --graph-lane-purple: var(--vscode-charts-purple, #b07cd8);
+  --graph-lane-cyan: var(--vscode-charts-foreground, #2aa198);
+  --graph-lane-orange: var(--vscode-charts-orange, #d19a66);
+  --graph-lane-teal: var(
+    --vscode-gitDecoration-renamedResourceForeground,
+    #56b6c2
+  );
+  --ref-branch-fg: var(
+    --vscode-gitDecoration-addedResourceForeground,
+    var(--graph-lane-green)
+  );
+  --ref-remote-branch-fg: var(
+    --vscode-gitDecoration-submoduleResourceForeground,
+    var(--graph-lane-purple)
+  );
+  --ref-tag-fg: var(--vscode-charts-yellow, #c4a000);
   --editor-font: var(--vscode-editor-font-family, "Menlo", monospace);
   --editor-font-size: var(--vscode-editor-font-size, 12px);
   --radius: 6px;
@@ -32,7 +63,11 @@
   padding: 0;
   box-sizing: border-box;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: var(
+      --vscode-scrollbarSlider-background,
+      rgba(127, 127, 127, 0.35)
+    )
+    transparent;
 }
 
 *::-webkit-scrollbar {
@@ -45,12 +80,18 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(
+    --vscode-scrollbarSlider-background,
+    rgba(127, 127, 127, 0.35)
+  );
   border-radius: 3px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(
+    --vscode-scrollbarSlider-hoverBackground,
+    rgba(127, 127, 127, 0.55)
+  );
 }
 
 html,
@@ -234,7 +275,7 @@ button.panel-toggle-btn {
 
 button.panel-toggle-btn:hover {
   opacity: 1;
-  background: #ededed;
+  background: var(--hover-bg);
   color: var(--app-fg);
 }
 
@@ -259,7 +300,7 @@ button.panel-toggle-strip {
 
 button.panel-toggle-strip:hover {
   opacity: 1;
-  background: #ededed;
+  background: var(--hover-bg);
   color: var(--app-fg);
 }
 
@@ -305,7 +346,7 @@ button.branch-sidebar-btn {
 
 button.branch-sidebar-btn:hover:not(:disabled) {
   opacity: 1;
-  background: #ededed;
+  background: var(--hover-bg);
 }
 
 button.branch-sidebar-btn:disabled {
