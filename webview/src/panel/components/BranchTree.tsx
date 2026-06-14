@@ -322,6 +322,12 @@ export function BranchTree({
     branch: BranchInfo;
   } | null>(null);
 
+  const [tagContextMenu, setTagContextMenu] = useState<{
+    x: number;
+    y: number;
+    tag: TagInfo;
+  } | null>(null);
+
   // Create branch dialog state
   const [createBranchDialog, setCreateBranchDialog] = useState<{
     startPoint: string;
@@ -345,6 +351,15 @@ export function BranchTree({
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
+
+  const handleTagContextMenu = useCallback(
+    (e: React.MouseEvent, tag: TagInfo) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setTagContextMenu({ x: e.clientX, y: e.clientY, tag });
+    },
+    [],
+  );
 
   // Listen for expand-all / collapse-all events from sidebar
   useEffect(() => {
@@ -649,6 +664,7 @@ export function BranchTree({
               groupPrefix="tags"
               collapsed={collapsed}
               onToggle={toggle}
+              onTagContextMenu={handleTagContextMenu}
             />
           ))}
         </GroupSection>
@@ -670,6 +686,18 @@ export function BranchTree({
                 closeContextMenu();
                 setPushDialog({ branchName });
               }}
+            />,
+            document.body,
+          )}
+
+        {/* Tag Context Menu */}
+        {tagContextMenu &&
+          createPortal(
+            <TagContextMenu
+              x={tagContextMenu.x}
+              y={tagContextMenu.y}
+              tag={tagContextMenu.tag}
+              onClose={() => setTagContextMenu(null)}
             />,
             document.body,
           )}
@@ -843,26 +871,30 @@ function TagTreeNodeView({
   groupPrefix,
   collapsed,
   onToggle,
+  onTagContextMenu,
 }: {
   node: TreeNode;
   depth: number;
   groupPrefix: string;
   collapsed: Record<string, boolean>;
   onToggle: (key: string) => void;
+  onTagContextMenu: (e: React.MouseEvent, tag: TagInfo) => void;
 }) {
   const collapseKey = `${groupPrefix}:${node.fullPath}`;
 
   if (node.isLeaf) {
+    const tag = node.tag;
     return (
       <div
+        className="selectable-row"
         style={{
           padding: `4px 8px 4px ${20 + depth * 12}px`,
-          cursor: "default",
           color: "var(--description-fg)",
           display: "flex",
           alignItems: "center",
           gap: 4,
         }}
+        onContextMenu={tag ? (e) => onTagContextMenu(e, tag) : undefined}
       >
         <IconTagOutline style={{ color: "var(--description-fg)" }} />
         {node.name}
@@ -899,6 +931,7 @@ function TagTreeNodeView({
             groupPrefix={groupPrefix}
             collapsed={collapsed}
             onToggle={onToggle}
+            onTagContextMenu={onTagContextMenu}
           />
         ))}
     </div>
@@ -1032,6 +1065,166 @@ function BranchItem({
 // ---------------------------------------------------------------------------
 // BranchContextMenu – right-click context menu for branches
 // ---------------------------------------------------------------------------
+
+function TagContextMenu({
+  x,
+  y,
+  tag,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  tag: TagInfo;
+  onClose: () => void;
+}) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const menu = menuRef.current;
+    if (!menu) return;
+    requestAnimationFrame(() => {
+      const rect = menu.getBoundingClientRect();
+      let top = y;
+      let left = x;
+      if (top + rect.height > window.innerHeight) {
+        const above = y - rect.height;
+        top =
+          above >= 4
+            ? above
+            : Math.max(4, window.innerHeight - rect.height - 4);
+      }
+      if (left + rect.width > window.innerWidth) {
+        left = Math.max(4, window.innerWidth - rect.width - 4);
+      }
+      setPosition({ top, left });
+    });
+  }, [x, y]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node))
+        onClose();
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const handleBlur = () => onClose();
+    const handleScroll = (e: Event) => {
+      if (
+        menuRef.current &&
+        e.target instanceof Node &&
+        !menuRef.current.contains(e.target)
+      )
+        onClose();
+    };
+    const handleContextMenu = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node))
+        onClose();
+    };
+    document.addEventListener("mousedown", handleClickOutside, true);
+    document.addEventListener("contextmenu", handleContextMenu, true);
+    document.addEventListener("keydown", handleEscape);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleBlur);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside, true);
+      document.removeEventListener("contextmenu", handleContextMenu, true);
+      document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleBlur);
+    };
+  }, [onClose]);
+
+  const handleCheckout = async () => {
+    onClose();
+    try {
+      await bridgeWithProgress("checkoutTag", { tagName: tag.name });
+    } catch (err) {
+      console.error("Tag checkout failed:", err);
+    }
+  };
+
+  const handleDelete = async () => {
+    onClose();
+    const result = (await bridge.request("showConfirmMessage", {
+      message: `Delete tag '${tag.name}'?`,
+      confirmLabel: "Delete",
+    })) as { confirmed: boolean };
+    if (!result.confirmed) return;
+    try {
+      await bridgeWithProgress("deleteTag", { tagName: tag.name });
+    } catch (err) {
+      console.error("Tag delete failed:", err);
+    }
+  };
+
+  const handleCompareWithLocal = async () => {
+    onClose();
+    try {
+      await bridge.request("compareWithLocal", { hash: tag.hash });
+    } catch (err) {
+      console.error("Compare with local failed:", err);
+    }
+  };
+
+  const items = [
+    { label: "Checkout", action: handleCheckout },
+    { label: "Delete", action: handleDelete },
+    { label: "Compare with Local", action: handleCompareWithLocal },
+  ];
+
+  return (
+    <div
+      ref={menuRef}
+      style={{
+        position: "fixed",
+        top: position ? position.top : -9999,
+        left: position ? position.left : -9999,
+        zIndex: 9999,
+        background: "var(--vscode-menu-background, #fff)",
+        border: "1px solid var(--vscode-menu-border, #e0e0e0)",
+        borderRadius: 4,
+        padding: "4px 0",
+        minWidth: 160,
+        boxShadow: "0 3px 12px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05)",
+        visibility: position ? "visible" : "hidden",
+      }}
+    >
+      {items.map((item) => (
+        <div
+          key={item.label}
+          onClick={item.action}
+          style={{
+            padding: "6px 16px",
+            cursor: "pointer",
+            color: "var(--vscode-menu-foreground, #333)",
+            fontSize: "13px",
+            whiteSpace: "nowrap",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background =
+              "var(--vscode-menu-selectionBackground, #e8f0fe)";
+            (e.currentTarget as HTMLElement).style.color =
+              "var(--vscode-menu-selectionForeground, #333)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+            (e.currentTarget as HTMLElement).style.color =
+              "var(--vscode-menu-foreground, #ccc)";
+          }}
+        >
+          {item.label}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function BranchContextMenu({
   x,

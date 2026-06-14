@@ -896,6 +896,11 @@ export class GitService {
     this.invalidateCache();
   }
 
+  async deleteTag(tagName: string): Promise<void> {
+    await this.execGit(["tag", "-d", tagName]);
+    this.invalidateCache();
+  }
+
   // ─── Commit Panel Operations ───────────────────────────────────────
 
   async getWorkingTreeChanges(): Promise<import("./types").WorkingTreeFile[]> {

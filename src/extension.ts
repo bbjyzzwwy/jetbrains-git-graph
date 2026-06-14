@@ -948,6 +948,26 @@ export function activate(context: vscode.ExtensionContext) {
     return { success: true };
   });
 
+  messageRouter.handle("checkoutTag", async (params) => {
+    if (!gitService) return NOT_GIT_REPO;
+    const tagName = params.tagName as string;
+    return withProgress(messageRouter, async () => {
+      await gitService.checkout(tagName);
+      messageRouter.broadcastEvent("gitStateChanged", { scope: "all" });
+      return { success: true };
+    });
+  });
+
+  messageRouter.handle("deleteTag", async (params) => {
+    if (!gitService) return NOT_GIT_REPO;
+    const tagName = params.tagName as string;
+    return withProgress(messageRouter, async () => {
+      await gitService.deleteTag(tagName);
+      messageRouter.broadcastEvent("gitStateChanged", { scope: "all" });
+      return { success: true };
+    });
+  });
+
   messageRouter.handle("copyToClipboard", async (params) => {
     const text = params.text as string;
     await vscode.env.clipboard.writeText(text);

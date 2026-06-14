@@ -115,7 +115,9 @@ export type CommandType =
   | "compareWithLocal"
   | "compareWithLocalClear"
   | "getCompareWithLocalState"
-  | "showCompareWithLocalDiff";
+  | "showCompareWithLocalDiff"
+  | "checkoutTag"
+  | "deleteTag";
 
 export interface Bridge {
   request(
