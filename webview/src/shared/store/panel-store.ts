@@ -18,6 +18,20 @@ interface PanelFilter {
   file: string;
 }
 
+type CommitListColumn = "author" | "date" | "hash";
+
+interface CommitListColumnWidths {
+  author: number;
+  date: number;
+  hash: number;
+}
+
+interface VisibleColumns {
+  author: boolean;
+  date: boolean;
+  hash: boolean;
+}
+
 interface PanelStore {
   commits: Commit[];
   /** Commits filtered by search/author (client-side). Graph layout uses full `commits`. */
@@ -35,7 +49,9 @@ interface PanelStore {
   commitFiles: DiffFile[];
   selectedFilePath: string | null;
   /** Column visibility for the commit list */
-  visibleColumns: { author: boolean; date: boolean; hash: boolean };
+  visibleColumns: VisibleColumns;
+  /** Column widths for the commit list */
+  commitListColumnWidths: CommitListColumnWidths;
   /** When multiple commits are selected, stores the oldest/newest for range diff */
   rangeOldest: string | null;
   rangeNewest: string | null;
@@ -71,10 +87,113 @@ interface PanelStore {
     allVisibleBranches: string[],
   ) => void;
   setHoveredColumn: (column: number | null) => void;
-  toggleColumnVisibility: (column: "author" | "date" | "hash") => void;
+  toggleColumnVisibility: (column: CommitListColumn) => void;
+  setCommitListColumnWidth: (column: CommitListColumn, width: number) => void;
   toggleSequenceCollapse: (sequenceId: string, intermediates: string[]) => void;
   toggleBranchGroupByDirectory: () => void;
   refresh: () => Promise<void>;
+}
+
+const PANEL_PREFS_KEY = "jetgit.panel.preferences.v1";
+const DEFAULT_COMMIT_LIST_COLUMN_WIDTHS: CommitListColumnWidths = {
+  author: 100,
+  date: 130,
+  hash: 70,
+};
+const DEFAULT_VISIBLE_COLUMNS: VisibleColumns = {
+  author: true,
+  date: true,
+  hash: true,
+};
+const MIN_COMMIT_LIST_COLUMN_WIDTHS: CommitListColumnWidths = {
+  author: 40,
+  date: 60,
+  hash: 50,
+};
+
+interface PanelPrefs {
+  visibleColumns: VisibleColumns;
+  commitListColumnWidths: CommitListColumnWidths;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function sanitizeColumnWidths(value: unknown): CommitListColumnWidths {
+  if (!isRecord(value)) return DEFAULT_COMMIT_LIST_COLUMN_WIDTHS;
+  return {
+    author: sanitizeColumnWidth(value.author, "author"),
+    date: sanitizeColumnWidth(value.date, "date"),
+    hash: sanitizeColumnWidth(value.hash, "hash"),
+  };
+}
+
+function sanitizeColumnWidth(value: unknown, column: CommitListColumn): number {
+  const width = typeof value === "number" ? value : Number.NaN;
+  if (!Number.isFinite(width)) return DEFAULT_COMMIT_LIST_COLUMN_WIDTHS[column];
+  return Math.max(MIN_COMMIT_LIST_COLUMN_WIDTHS[column], Math.round(width));
+}
+
+function sanitizeVisibleColumns(value: unknown): VisibleColumns {
+  if (!isRecord(value)) return DEFAULT_VISIBLE_COLUMNS;
+  return {
+    author:
+      typeof value.author === "boolean"
+        ? value.author
+        : DEFAULT_VISIBLE_COLUMNS.author,
+    date:
+      typeof value.date === "boolean"
+        ? value.date
+        : DEFAULT_VISIBLE_COLUMNS.date,
+    hash:
+      typeof value.hash === "boolean"
+        ? value.hash
+        : DEFAULT_VISIBLE_COLUMNS.hash,
+  };
+}
+
+function readPanelPrefs(): PanelPrefs {
+  try {
+    const raw = localStorage.getItem(PANEL_PREFS_KEY);
+    if (!raw) {
+      return {
+        visibleColumns: DEFAULT_VISIBLE_COLUMNS,
+        commitListColumnWidths: DEFAULT_COMMIT_LIST_COLUMN_WIDTHS,
+      };
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isRecord(parsed)) {
+      return {
+        visibleColumns: DEFAULT_VISIBLE_COLUMNS,
+        commitListColumnWidths: DEFAULT_COMMIT_LIST_COLUMN_WIDTHS,
+      };
+    }
+    return {
+      visibleColumns: sanitizeVisibleColumns(parsed.visibleColumns),
+      commitListColumnWidths: sanitizeColumnWidths(
+        parsed.commitListColumnWidths,
+      ),
+    };
+  } catch {
+    return {
+      visibleColumns: DEFAULT_VISIBLE_COLUMNS,
+      commitListColumnWidths: DEFAULT_COMMIT_LIST_COLUMN_WIDTHS,
+    };
+  }
+}
+
+function persistPanelPrefs(partial: Partial<PanelPrefs>, state: PanelStore) {
+  try {
+    const prefs: PanelPrefs = {
+      visibleColumns: partial.visibleColumns ?? state.visibleColumns,
+      commitListColumnWidths:
+        partial.commitListColumnWidths ?? state.commitListColumnWidths,
+    };
+    localStorage.setItem(PANEL_PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // ignore storage errors
+  }
 }
 
 interface SelectionSnapshot {
@@ -185,6 +304,8 @@ function deriveSelectionFromVisible(
   };
 }
 
+const initialPanelPrefs = readPanelPrefs();
+
 export const usePanelStore = create<PanelStore>((set, get) => ({
   commits: [],
   visibleCommits: [],
@@ -200,7 +321,8 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   hoveredColumn: null,
   commitFiles: [],
   selectedFilePath: null,
-  visibleColumns: { author: true, date: true, hash: true },
+  visibleColumns: initialPanelPrefs.visibleColumns,
+  commitListColumnWidths: initialPanelPrefs.commitListColumnWidths,
   rangeOldest: null,
   rangeNewest: null,
   selectedBranches: [],
@@ -551,13 +673,26 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     set({ hoveredColumn: column });
   },
 
-  toggleColumnVisibility(column: "author" | "date" | "hash") {
-    set((state) => ({
-      visibleColumns: {
+  toggleColumnVisibility(column: CommitListColumn) {
+    set((state) => {
+      const visibleColumns = {
         ...state.visibleColumns,
         [column]: !state.visibleColumns[column],
-      },
-    }));
+      };
+      persistPanelPrefs({ visibleColumns }, state);
+      return { visibleColumns };
+    });
+  },
+
+  setCommitListColumnWidth(column: CommitListColumn, width: number) {
+    set((state) => {
+      const commitListColumnWidths = {
+        ...state.commitListColumnWidths,
+        [column]: sanitizeColumnWidth(width, column),
+      };
+      persistPanelPrefs({ commitListColumnWidths }, state);
+      return { commitListColumnWidths };
+    });
   },
 
   toggleBranchGroupByDirectory() {

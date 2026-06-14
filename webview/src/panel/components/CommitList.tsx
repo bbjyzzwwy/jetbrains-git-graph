@@ -6,22 +6,11 @@ import { useModifierClickSelection } from "../../shared/hooks/useModifierClickSe
 import { usePanelStore } from "../../shared/store/panel-store";
 import type { Commit } from "../../shared/types/git";
 import { CommitContextMenu } from "./CommitContextMenu";
-import {
-  type ColumnWidths,
-  CommitRow,
-  ROW_HEIGHT,
-  type VisibleColumns,
-} from "./CommitRow";
+import { CommitRow, ROW_HEIGHT, type VisibleColumns } from "./CommitRow";
 import { CreateBranchDialog } from "./CreateBranchDialog";
 
 const COLUMN_WIDTH = 16;
 const GRAPH_PADDING = 8;
-
-const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
-  author: 100,
-  date: 130,
-  hash: 70,
-};
 
 export function CommitList({
   onScroll,
@@ -36,12 +25,13 @@ export function CommitList({
   const loadMore = usePanelStore((s) => s.loadMore);
   const loading = usePanelStore((s) => s.loading);
   const selectCommit = usePanelStore((s) => s.selectCommit);
-
-  const parentRef = useRef<HTMLDivElement>(null);
-  const [columnWidths, setColumnWidths] = useState<ColumnWidths>(
-    DEFAULT_COLUMN_WIDTHS,
+  const columnWidths = usePanelStore((s) => s.commitListColumnWidths);
+  const setCommitListColumnWidth = usePanelStore(
+    (s) => s.setCommitListColumnWidth,
   );
   const visibleColumns = usePanelStore((s) => s.visibleColumns);
+
+  const parentRef = useRef<HTMLDivElement>(null);
   const [headerMenu, setHeaderMenu] = useState<{
     x: number;
     y: number;
@@ -284,7 +274,7 @@ export function CommitList({
           column === "author" ? 40 : column === "date" ? 60 : 50,
           startWidth + diff,
         );
-        setColumnWidths((prev) => ({ ...prev, [column]: newWidth }));
+        setCommitListColumnWidth(column, newWidth);
       };
 
       const onMouseUp = () => {
@@ -298,7 +288,7 @@ export function CommitList({
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
     },
-    [],
+    [setCommitListColumnWidth],
   );
 
   return (

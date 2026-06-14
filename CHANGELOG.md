@@ -14,6 +14,7 @@
 
 ### Fixed / 修复
 - **Merged/deleted branch colors** — commits belonging to a branch that was deleted after merging now share a single consistent color instead of each getting its own rainbow color / 已删除分支（合并后删除）上的 commit 现在共享同一颜色，不再每个 commit 各显一色
+- **Persistent Git Log columns** — resized Author, Date, and Hash column widths, plus column visibility choices, are now remembered across VS Code reloads / Git Log 中调整后的 Author、Date、Hash 列宽以及列显示/隐藏选项现在会在 VS Code 重载后保留
 
 ## [1.0.0] - 2026-06-14
 
