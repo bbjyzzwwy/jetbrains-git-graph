@@ -531,12 +531,26 @@ function getOrderedHeads(
     }
   }
 
+  // Non-first parents of merge commits are tips of merged/deleted branches.
+  // Without this, deleted-branch commits have no head and each falls back to
+  // a per-commit color, making the merged branch appear rainbow-colored.
+  const mergedTips = new Set<string>();
+  for (const commit of commits) {
+    for (let i = 1; i < commit.parents.length; i++) {
+      mergedTips.add(commit.parents[i]);
+    }
+  }
+
   return commits
     .filter((commit) => {
       const hasBranchRef = commit.refs.some(
         (ref) => ref.type === "branch" || ref.type === "remote-branch",
       );
-      return hasBranchRef || (children.get(commit.hash)?.length ?? 0) === 0;
+      return (
+        hasBranchRef ||
+        (children.get(commit.hash)?.length ?? 0) === 0 ||
+        mergedTips.has(commit.hash)
+      );
     })
     .sort((a, b) => {
       const aMain = isMainBranchCommit(a);
