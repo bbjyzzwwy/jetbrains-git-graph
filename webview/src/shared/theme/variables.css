@@ -48,10 +48,7 @@
     --vscode-gitDecoration-addedResourceForeground,
     var(--graph-lane-green)
   );
-  --ref-remote-branch-fg: var(
-    --vscode-gitDecoration-submoduleResourceForeground,
-    var(--graph-lane-purple)
-  );
+  --ref-remote-branch-fg: var(--graph-lane-purple);
   --ref-tag-fg: var(--vscode-charts-yellow, #c4a000);
   --editor-font: var(--vscode-editor-font-family, "Menlo", monospace);
   --editor-font-size: var(--vscode-editor-font-size, 12px);
