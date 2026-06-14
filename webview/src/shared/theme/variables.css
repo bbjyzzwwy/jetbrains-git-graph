@@ -44,6 +44,10 @@
     --vscode-gitDecoration-renamedResourceForeground,
     #56b6c2
   );
+  --graph-lane-pink: #e878a0;
+  --graph-lane-lime: #8ec23a;
+  --graph-lane-indigo: #7b7ee0;
+  --graph-lane-coral: #e07864;
   --ref-branch-fg: var(
     --vscode-gitDecoration-addedResourceForeground,
     var(--graph-lane-green)

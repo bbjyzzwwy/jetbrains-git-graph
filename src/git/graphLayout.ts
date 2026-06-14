@@ -13,13 +13,40 @@ const MAIN_BRANCH_NAMES = new Set(["master", "main", "develop", "trunk"]);
  * Stable color derived from a commit hash (0-7). Independent of render order,
  * so the same branch gets the same color in full-log and filtered views.
  */
+const PALETTE_SIZE = 12;
+
 function commitHashColor(hash: string): number {
   let n = 0;
   const len = Math.min(hash.length, 8);
   for (let i = 0; i < len; i++) {
     n = ((n << 4) | Number.parseInt(hash[i], 16)) >>> 0;
   }
-  return n % 8;
+  return n % PALETTE_SIZE;
+}
+
+/**
+ * Stable color derived from a branch name (0–11). Unlike commitHashColor, this
+ * remains the same regardless of which commit is at the branch tip, so branch
+ * line colors don't shift when new commits are added.
+ */
+function branchNameColor(name: string): number {
+  let n = 0;
+  for (let i = 0; i < name.length; i++) {
+    n = (((n * 31) | 0) + name.charCodeAt(i)) >>> 0;
+  }
+  return n % PALETTE_SIZE;
+}
+
+/**
+ * Preferred color for a branch-head commit: use the branch name when available
+ * (stable), fall back to commit hash for orphan heads with no ref.
+ */
+function headPreferredColor(commit: CommitNode): number {
+  const local = commit.refs.find((r) => r.type === "branch");
+  if (local) return branchNameColor(local.name);
+  const remote = commit.refs.find((r) => r.type === "remote-branch");
+  if (remote) return branchNameColor(remote.name);
+  return commitHashColor(commit.hash);
 }
 
 /**
@@ -186,7 +213,7 @@ export function computeGraphLayout(
       }
     }
 
-    lanes.set(commit.hash, { column: col, color: color % 8, lines });
+    lanes.set(commit.hash, { column: col, color: color % PALETTE_SIZE, lines });
   }
 
   applyJetBrainsStyleDisplayColumns(commits, lanes);
@@ -341,7 +368,7 @@ function applyBranchColors(
 
   const visibleHeads = getOrderedHeads(commits, rowIndex);
   for (const head of visibleHeads) {
-    const color = commitColors.get(head.hash) ?? commitHashColor(head.hash);
+    const color = commitColors.get(head.hash) ?? headPreferredColor(head);
     let current: CommitNode | undefined = head;
     while (current && !commitColors.has(current.hash)) {
       commitColors.set(current.hash, color);
@@ -390,7 +417,7 @@ function buildCommitColors(
   const usedHeadColors = new Set<number>();
 
   for (const head of heads) {
-    const preferredColor = commitHashColor(head.hash);
+    const preferredColor = headPreferredColor(head);
     const color = pickAvailableColor(preferredColor, usedHeadColors);
     usedHeadColors.add(color);
 
@@ -424,8 +451,10 @@ function buildCommitColors(
 }
 
 function pickAvailableColor(preferredColor: number, usedColors: Set<number>) {
-  for (let offset = 0; offset < 8; offset++) {
-    const color = (preferredColor + offset) % 8;
+  // Try offsets that spread colors maximally across the 12-slot palette:
+  // preferred → opposite(+6) → quarters(+3,+9) → sixths(+2,+4,+8,+10) → rest.
+  for (const offset of [0, 6, 3, 9, 2, 8, 4, 10, 1, 7, 5, 11]) {
+    const color = (preferredColor + offset) % PALETTE_SIZE;
     if (!usedColors.has(color)) {
       return color;
     }

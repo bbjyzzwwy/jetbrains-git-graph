@@ -19,6 +19,10 @@ const LANE_COLORS = [
   "var(--graph-lane-cyan)",
   "var(--graph-lane-orange)",
   "var(--graph-lane-teal)",
+  "var(--graph-lane-pink)",
+  "var(--graph-lane-lime)",
+  "var(--graph-lane-indigo)",
+  "var(--graph-lane-coral)",
 ];
 
 function laneColor(colorIdx: number): string {
