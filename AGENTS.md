@@ -106,7 +106,7 @@ pnpm run build
 vsce package --no-dependencies
 
 # 3. 安装到本地 VS Code
-code --install-extension idea-like-git-graph-1.0.0.vsix --force
+code --install-extension jetbrains-like-git-graph-1.0.0.vsix --force
 ```
 
 安装完成后，在 VS Code 中按 `Ctrl+Shift+P` → `Developer: Reload Window` 重新加载窗口即可生效。

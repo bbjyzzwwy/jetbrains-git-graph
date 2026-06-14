@@ -1,5 +1,5 @@
 {
-  "name": "idea-like-git-graph",
+  "name": "jetbrains-like-git-graph",
   "displayName": "JetGit - JetBrains Git Graph, Commit & Shelf for VS Code",
   "publisher": "bbjyzzwwy",
   "description": "Independently maintained JetBrains-style Git experience for VS Code & Cursor: Git graph visualization, IDEA-style commit panel with shelf/stash, branch management, cherry-pick, rebase, merge, 3-way merge editor, and context menus.",
