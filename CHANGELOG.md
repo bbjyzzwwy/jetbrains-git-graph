@@ -1,5 +1,20 @@
 # Changelog / 更新日志
 
+## [1.0.1] - 2026-06-15
+
+### Added / 新增
+- **Tag context menu** — right-click any tag in the Tags group to get Checkout, Delete, and Compare with Local actions / 右键 Tags 组中的任意 tag，可执行签出、删除和与本地对比三项操作
+- **Tag hover highlight** — hovering a tag item in the branch tree now highlights it, matching the commit list hover effect / 鼠标悬浮 tag 条目时高亮显示，与 commit 列表 hover 效果一致
+
+### Changed / 变更
+- **Extension id renamed** — extension id changed from `idea-like-git-graph` to `jetbrains-like-git-graph` / 扩展 id 从 `idea-like-git-graph` 改为 `jetbrains-like-git-graph`
+- **Remote branch tag color** — remote branch ref labels now always use purple (`--graph-lane-purple`) instead of VS Code's submodule blue / 远程分支标签改为始终显示紫色，不再使用 VSCode 的 submodule 淡蓝色
+- **Stable branch line colors** — branch line colors are now derived from the branch name hash instead of the latest commit hash, so they no longer change when new commits are added / 分支线颜色改为基于分支名哈希而非最新 commit 哈希，新增 commit 后颜色不再变化
+- **Expanded color palette (8 → 12)** — added pink, lime, indigo, and coral to the graph lane color set; spread offsets maximize perceptual distance between simultaneously-used colors / 图形通道配色从 8 种扩展到 12 种（新增粉红、黄绿、靛蓝、珊瑚色）；通道分配算法使用最大感知距离偏移，相邻分支颜色对比更明显
+
+### Fixed / 修复
+- **Merged/deleted branch colors** — commits belonging to a branch that was deleted after merging now share a single consistent color instead of each getting its own rainbow color / 已删除分支（合并后删除）上的 commit 现在共享同一颜色，不再每个 commit 各显一色
+
 ## [1.0.0] - 2026-06-14
 
 ### Changed / 变更
