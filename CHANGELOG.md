@@ -1,5 +1,15 @@
 # Changelog / 更新日志
 
+## [1.0.0] - 2026-06-14
+
+### Changed / 变更
+- **Independent project baseline** — this fork is now maintained as an independent project under `bbjyzzwwy/jetbrains-git-graph`, with `origin/main` as the canonical development branch / 当前 fork 正式作为独立项目维护，主线以 `bbjyzzwwy/jetbrains-git-graph` 的 `origin/main` 为准
+- **Independent version stream** — versioning starts from `1.0.0`; upstream updates can still be merged or cherry-picked without controlling this project's release cadence / 版本号从 `1.0.0` 作为独立版本线开始；上游更新仍可合并或挑选，但不再决定本项目发布节奏
+- **Package metadata ownership** — extension metadata now points to the independent fork repository and publisher / 扩展元信息改为指向独立 fork 仓库和发布者
+
+### Documentation / 文档
+- **Upstream sync workflow** — documented how to fetch, merge, cherry-pick, test, and push updates from the original upstream repository / 新增从上游仓库拉取、合并、挑选、测试和推送更新的流程说明
+
 ## [0.4.15] - 2026-06-14
 
 ### Added / 新增

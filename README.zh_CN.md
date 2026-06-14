@@ -2,13 +2,13 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/assets/logo-128.png" width="80" />
+<img src="https://raw.githubusercontent.com/bbjyzzwwy/jetbrains-git-graph/main/images/assets/logo-128.png" width="80" />
 
-<h1>IntelliJ Git Graph - IDEA 风格分支与合并</h1>
+<h1>JetGit - JetBrains Git Graph, Commit & Shelf for VS Code</h1>
 
-IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-Pick、Rebase 和三路合并编辑器。
+独立维护的 IntelliJ IDEA / JetBrains 风格 Git 工具：提交图、Commit 面板、分支管理、Cherry-Pick、Rebase 和三路合并编辑器。
 
-> 基于 [zhyc9de/jet-git](https://github.com/zhyc9de/jet-git) 的 Fork，新增完整的 IntelliJ IDEA 风格右键菜单和 UI 增强。
+> 本项目是 [aotemj/jetbrains-git-graph](https://github.com/aotemj/jetbrains-git-graph) 的独立维护 fork，最早源自 [zhyc9de/jet-git](https://github.com/zhyc9de/jet-git)。上游更新会按本项目方向选择性合并或 cherry-pick。
 
 [English](./README.md) · **简体中文**
 
@@ -22,13 +22,13 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 
 右键任意分支即可执行 Checkout、创建、合并、Rebase、重命名、删除、Push、Pull 等操作，与 IntelliJ IDEA 体验一致。
 
-![分支 Checkout](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/checkout.gif)
+![分支 Checkout](https://raw.githubusercontent.com/bbjyzzwwy/jetbrains-git-graph/main/images/checkout.gif)
 
 ### 提交右键菜单
 
 右键任意提交即可复制 Hash、Cherry-Pick、Checkout、Reset、Revert、创建分支或标签。
 
-![提交右键菜单](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/commit-context-menu.gif)
+![提交右键菜单](https://raw.githubusercontent.com/bbjyzzwwy/jetbrains-git-graph/main/images/commit-context-menu.gif)
 
 ### 变更文件右键菜单
 
@@ -36,7 +36,7 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 
 ### Git 提交图
 
-![Git Graph](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/git-graph.png)
+![Git Graph](https://raw.githubusercontent.com/bbjyzzwwy/jetbrains-git-graph/main/images/git-graph.png)
 
 - **分支树** — 按 Local / Remote / Tags 分组，支持搜索过滤
 - **提交列表** — 彩色分支线，可调整列宽（Message、Author、Date、Hash）
@@ -45,7 +45,7 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 
 ### 三路合并编辑器
 
-![三路合并编辑器](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/three-way-merge.png)
+![三路合并编辑器](https://raw.githubusercontent.com/bbjyzzwwy/jetbrains-git-graph/main/images/three-way-merge.png)
 
 - 三栏布局：Theirs | Result | Yours
 - 冲突高亮 + 逐块操作按钮
@@ -53,7 +53,7 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 
 ### 冲突管理
 
-![冲突列表](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/conflicts-list.png)
+![冲突列表](https://raw.githubusercontent.com/bbjyzzwwy/jetbrains-git-graph/main/images/conflicts-list.png)
 
 - 快捷操作：接受 Yours / 接受 Theirs / 合并
 - 与 VS Code 源代码管理面板无缝集成
@@ -109,11 +109,11 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 
 **从 Marketplace 安装：**
 
-在 VS Code 扩展中搜索 **"IntelliJ Git Graph"** 即可安装。
+在 VS Code 扩展中搜索 **"JetGit"**，或从本 fork 的 Release 产物安装。
 
 **从 .vsix 安装：**
 
-1. 从 [Releases](https://github.com/aotemj/jetbrains-git-graph/releases) 下载最新 `.vsix`
+1. 从 [Releases](https://github.com/bbjyzzwwy/jetbrains-git-graph/releases) 下载最新 `.vsix`
 2. `Cmd+Shift+P` → "Extensions: Install from VSIX..."
 
 ## 环境要求
@@ -124,7 +124,7 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 ## 本地开发
 
 ```bash
-git clone https://github.com/aotemj/jetbrains-git-graph.git
+git clone https://github.com/bbjyzzwwy/jetbrains-git-graph.git
 cd jetbrains-git-graph
 pnpm install
 cd webview && pnpm install && cd ..
@@ -141,6 +141,7 @@ pnpm run vsce:package   # 打包为 .vsix
 ## 致谢
 
 - 原项目：[zhyc9de/jet-git](https://github.com/zhyc9de/jet-git)
+- 上游 fork：[aotemj/jetbrains-git-graph](https://github.com/aotemj/jetbrains-git-graph)
 - 图标：[IntelliJ IDEA Icons](https://intellij-icons.jetbrains.design/)（Apache 2.0 许可）
 
 ## 许可证

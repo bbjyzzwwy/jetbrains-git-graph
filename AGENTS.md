@@ -2,14 +2,52 @@
 
 这是一个 VSCode 插件项目，旨在将 JetBrains 的 Git 插件体验迁移到 VSCode 中。
 
+本仓库现在作为独立项目维护：`origin/main` 是主开发分支和发布基线，`upstream/main` 只作为同步原项目更新的来源。
+
 每次会话完后，如果改动了代码，都将插件编译安装到本地。
 
 ## Fork 关系
 
 ```
 zhyc9de/jet-git (original, 8 commits, last: 4aa7125)
-  └── aotemj/jetbrains-git-graph (upstream / PR target, 146+ commits)
-        └── bbjyzzwwy/jetbrains-git-graph (origin — my fork)
+  └── aotemj/jetbrains-git-graph (upstream — original update source)
+        └── bbjyzzwwy/jetbrains-git-graph (origin — independent project)
+```
+
+## 分支策略
+
+- `origin/main`：本项目主线，所有发布版本以这个分支为准。
+- `upstream/main`：原项目主线，只用于拉取可用更新。
+- `sync/upstream-YYYY-MM-DD`：同步上游时创建的临时分支，确认无误后再合并回 `main`。
+- `feature/*`、`fix/*`：本项目自己的功能和修复分支。
+
+同步上游更新的推荐流程：
+
+```bash
+git fetch upstream
+git switch main
+git pull --ff-only origin main
+git switch -c sync/upstream-YYYY-MM-DD
+git merge upstream/main
+
+# 解决冲突后验证
+pnpm run build
+
+# 验证通过后合回主线
+git switch main
+git merge --no-ff sync/upstream-YYYY-MM-DD
+git push origin main
+```
+
+如果只需要上游的单个提交，优先使用 cherry-pick：
+
+```bash
+git fetch upstream
+git switch main
+git pull --ff-only origin main
+git cherry-pick <upstream-commit-hash>
+pnpm run build
+git push origin main
 ```
 
 
@@ -68,7 +106,7 @@ pnpm run build
 vsce package --no-dependencies
 
 # 3. 安装到本地 VS Code
-code --install-extension idea-like-git-graph-0.4.15.vsix --force
+code --install-extension idea-like-git-graph-1.0.0.vsix --force
 ```
 
 安装完成后，在 VS Code 中按 `Ctrl+Shift+P` → `Developer: Reload Window` 重新加载窗口即可生效。
@@ -77,6 +115,6 @@ code --install-extension idea-like-git-graph-0.4.15.vsix --force
 
 - `pnpm run compile` 通过（check-types + lint + esbuild）
 - `pnpm run build` 通过（extension + webview）
-- 分支已 rebase 到最新 `upstream/main`
+- 分支已基于最新 `origin/main`；如包含上游同步，需说明同步的 `upstream/main` commit
 - 改动集中、最小化——每个 PR 只关注一个问题
 - 普通 PR 不改变 `package.json` 版本号；发布版本时按需显式升版本
