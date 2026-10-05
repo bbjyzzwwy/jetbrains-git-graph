@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [1.0.2] - 2026-10-05
+
+### Fixed / 修复
+- **Keep the bottom panel open** — switching from Commit to Explorer or another sidebar view, or collapsing Commit, no longer closes the bottom panel, including Terminal, Output, Problems, and JetGit / 从 Commit 切换到资源管理器或其他侧栏视图，或收起 Commit 时，不再自动关闭底部面板，终端、输出、问题和 JetGit 均保持打开
+- **Avoid delayed focus after switching views** — skip the pending Git Log focus and refresh when Commit is no longer visible / 快速切换视图后，如果 Commit 已不可见，跳过尚未执行的 Git Log 聚焦和刷新
+
 ## [1.0.1] - 2026-06-15
 
 ### Added / 新增

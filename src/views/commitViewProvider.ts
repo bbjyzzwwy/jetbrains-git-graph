@@ -42,11 +42,14 @@ export class CommitViewProvider implements vscode.WebviewViewProvider {
     }, 200);
 
     // When commit panel becomes visible, also show the Git Log panel and refresh both
-    // When hidden (clicked again to collapse), hide the Git Log panel too
+    // Hiding the sidebar must leave the bottom panel (including terminals) alone.
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
         // Small delay to ensure panels are ready
         setTimeout(() => {
+          if (!webviewView.visible) {
+            return;
+          }
           void vscode.commands.executeCommand("git-brains.gitLog.focus");
           // Invalidate all git caches to ensure fresh data
           for (const cache of this.caches) {
@@ -57,8 +60,6 @@ export class CommitViewProvider implements vscode.WebviewViewProvider {
             scope: "all",
           });
         }, 100);
-      } else {
-        void vscode.commands.executeCommand("workbench.action.closePanel");
       }
     });
   }
